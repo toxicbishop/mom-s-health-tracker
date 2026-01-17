@@ -23,6 +23,27 @@ This project is a practical demonstration of a **3-Tier Application Architecture
 
 ---
 
+## 📂 Project Structure
+
+```text
+Mom-health-tracker/
+├── backend/            # Google Apps Script Source
+│   └── Code.gs         # Backend logic for Sheets integration
+├── mobile/             # React Native (Expo) Application
+│   ├── assets/         # App icons and splash screens
+│   ├── App.js          # Main application logic & UI
+│   ├── Constants.js    # API configuration & URLs
+│   ├── app.json        # Expo configuration
+│   └── package.json    # Mobile dependencies
+├── Dockerfile          # Container configuration for web version
+├── .dockerignore       # Docker exclusion rules
+├── .gitignore          # Git exclusion rules
+├── LICENSE             # MIT License
+└── README.md           # Project documentation
+```
+
+---
+
 ## 🚀 Setup Instructions
 
 ### 1. Persistence Layer (Google Sheets)
@@ -60,9 +81,26 @@ This project is a practical demonstration of a **3-Tier Application Architecture
 
 ---
 
+## 🐳 Docker Deployment (Web)
+
+To run the web version in a container:
+```bash
+docker build -t mom-health-tracker .
+docker run -p 8080:80 mom-health-tracker
+```
+Visit `http://localhost:8080` to see the app.
+
+---
+
 ## ✨ Features
 - **Modern UI**: Dark mode background with glowing neon accents.
 - **Glassmorphism**: Elegant semi-transparent cards for a premium feel.
 - **Micro-interactions**: Subtle feedback on button presses and transitions.
 - **Validation**: Ensures data integrity before sending to the cloud.
 - **Error Handling**: Graceful handling of network issues or configuration errors.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See [MIT License](./LICENSE) for more information.
