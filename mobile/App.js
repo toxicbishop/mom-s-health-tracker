@@ -13,7 +13,9 @@ import {
   StatusBar,
   Dimensions,
   Switch,
-  Modal
+  Modal,
+  Animated,
+  Easing
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -58,10 +60,10 @@ const Stack = createStackNavigator();
 
 // --- Theme Context ---
 const THEMES = {
-  PREMIUM: { primary: '#8b5cf6', secondary: '#1e1b4b', bg: ['#0f172a', '#1e1b4b'], name: 'Deep Space' },
-  SAKURA: { primary: '#ec4899', secondary: '#500724', bg: ['#2d0617', '#500724'], name: 'Sakura Pink' },
-  EMERALD: { primary: '#10b981', secondary: '#064e3b', bg: ['#022c22', '#064e3b'], name: 'Nature Green' },
-  OCEAN: { primary: '#0ea5e9', secondary: '#0c4a6e', bg: ['#082f49', '#0c4a6e'], name: 'Ocean Blue' },
+  PREMIUM: { primary: '#4f46e5', secondary: '#1f2937', bg: ['#030712', '#030712'], name: 'Modern Indigo' },
+  SAKURA: { primary: '#db2777', secondary: '#4c0519', bg: ['#0f0505', '#0f0505'], name: 'Slate Rose' },
+  EMERALD: { primary: '#059669', secondary: '#064e3b', bg: ['#022c22', '#022c22'], name: 'Forest Green' },
+  OCEAN: { primary: '#0284c7', secondary: '#0c4a6e', bg: ['#082f49', '#082f49'], name: 'Steel Blue' },
 };
 
 const ThemeContext = createContext({
@@ -134,16 +136,44 @@ const CustomButton = ({ title, onPress, icon: Icon, color, loading, style }) => 
       style={[styles.button, { backgroundColor: color || theme.primary }, style]} 
       onPress={onPress}
       disabled={loading}
+      activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color="#fff" />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.buttonText}>Processing...</Text>
+        </View>
       ) : (
         <>
-          {Icon && <Icon size={22} color="#fff" style={{ marginRight: 10 }} />}
+          {Icon && <Icon size={20} color="#fff" style={{ marginRight: 10 }} />}
           <Text style={styles.buttonText}>{title}</Text>
         </>
       )}
     </TouchableOpacity>
+  );
+};
+
+const Skeleton = ({ width, height, style }) => (
+  <View style={[{ width, height, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8 }, style]} />
+);
+
+const ScreenHeader = ({ title, navigation, showBack = true, children }) => {
+  const { theme } = useContext(ThemeContext);
+  return (
+    <View style={styles.header}>
+      <View style={styles.navHeader}>
+        <View style={{ flex: 1 }}>
+          {showBack && (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <ChevronLeft size={20} color="#fff" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+          )}
+          <Text style={styles.screenTitle}>{title}</Text>
+        </View>
+        {children}
+      </View>
+    </View>
   );
 };
 
@@ -236,8 +266,8 @@ const LoginScreen = ({ onLogin }) => {
 
         {mode === 'SETUP_PIN' && (
           <>
-            <Text style={styles.title}>Welcome!</Text>
-            <Text style={styles.subtitle}>Create your 4-digit security PIN</Text>
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.subtitle}>Set up a security PIN to protect your health data</Text>
             <TextInput style={styles.pinInput} value={pin} onChangeText={setPin} keyboardType="numeric" maxLength={4} secureTextEntry placeholder="New PIN" placeholderTextColor="rgba(255,255,255,0.2)" />
             <TextInput style={styles.pinInput} value={confirmPin} onChangeText={setConfirmPin} keyboardType="numeric" maxLength={4} secureTextEntry placeholder="Confirm PIN" placeholderTextColor="rgba(255,255,255,0.2)" />
             <CustomButton title="Next Step" icon={ChevronRight} onPress={handleSetupPin} />
@@ -260,8 +290,8 @@ const LoginScreen = ({ onLogin }) => {
 
         {mode === 'LOGIN' && (
           <>
-            <Text style={styles.title}>Mom's Tracker</Text>
-            <Text style={styles.subtitle}>Enter PIN to continue</Text>
+            <Text style={styles.title}>Health Tracker</Text>
+            <Text style={styles.subtitle}>Enter security PIN to continue</Text>
             <TextInput style={styles.pinInput} value={pin} onChangeText={setPin} keyboardType="numeric" maxLength={4} secureTextEntry placeholder="••••" placeholderTextColor="rgba(255,255,255,0.2)" autoFocus />
             <TouchableOpacity style={[styles.loginBtn, pin.length === 4 && { backgroundColor: theme.primary }]} onPress={handleLogin} disabled={loading || pin.length < 4}>
               <Text style={styles.loginBtnText}>Unlock</Text>
@@ -319,7 +349,31 @@ const HomeScreen = ({ navigation }) => {
       const response = await fetch(API_URL);
       const json = await response.json();
       if (json.length > 0) setLatest(json[0]);
+      animateItems();
     } catch (e) {}
+  };
+
+  const fadeAnims = React.useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  const animateItems = () => {
+    fadeAnims.forEach(anim => anim.setValue(0));
+    const animations = fadeAnims.map((anim, i) => 
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 400,
+        delay: i * 80,
+        easing: Easing.bezier(0.4, 0, 0.2, 1), // Standard professional easing
+        useNativeDriver: true,
+      })
+    );
+    Animated.parallel(animations).start();
   };
 
   useFocusEffect(React.useCallback(() => { loadData(); }, []));
@@ -330,7 +384,7 @@ const HomeScreen = ({ navigation }) => {
       if (status !== 'granted') return;
       await Notifications.cancelAllScheduledNotificationsAsync();
       await Notifications.scheduleNotificationAsync({
-        content: { title: "Mom, time for a check! ❤️", body: "Don't forget to log your BP and weight today." },
+        content: { title: "Daily Health Check", body: "Remember to log your blood pressure and weight for today." },
         trigger: { hour: 9, minute: 0, repeats: true },
       });
     };
@@ -347,24 +401,22 @@ const HomeScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.header}>
-        <View style={styles.navHeader}>
-          <View>
-            <Text style={styles.title}>Mom's Tracker</Text>
-            <Text style={styles.subtitle}>Premium Health Suite</Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 15 }}>
-            {syncCount > 0 && (
-              <TouchableOpacity onPress={handleSync} style={styles.syncIndicator}>
-                <RefreshCw size={20} color={theme.primary} />
-                <Text style={styles.syncText}>{syncCount}</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-              <SettingsIcon size={24} color="#94a3b8" />
+      <ScreenHeader title="Health Dashboard" showBack={false}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          {syncCount > 0 && (
+            <TouchableOpacity onPress={handleSync} style={styles.syncIndicator}>
+              <RefreshCw size={18} color={theme.primary} />
+              <Text style={styles.syncText}>{syncCount}</Text>
             </TouchableOpacity>
-          </View>
+          )}
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconButton}>
+            <SettingsIcon size={22} color="#94a3b8" />
+          </TouchableOpacity>
         </View>
+      </ScreenHeader>
+
+      <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
+        <Text style={styles.subtitle}>Overview of recent activity</Text>
 
         {latest && goals.weight && (
           <GlassCard style={[styles.goalProgressCard, { borderLeftColor: theme.primary }]}>
@@ -381,54 +433,66 @@ const HomeScreen = ({ navigation }) => {
 
       <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuContainer}>
         <View style={styles.grid}>
-          <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('LogWeight')}>
-            <GlassCard style={styles.gridCard}>
-              <Weight size={32} color="#06b6d4" />
-              <Text style={styles.gridText}>Log Weight</Text>
-            </GlassCard>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('LogBP')}>
-            <GlassCard style={styles.gridCard}>
-              <Heart size={32} color="#ec4899" />
-              <Text style={styles.gridText}>Log BP</Text>
-            </GlassCard>
-          </TouchableOpacity>
+          <Animated.View style={[styles.gridItem, { opacity: fadeAnims[0], transform: [{ translateY: fadeAnims[0].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+            <TouchableOpacity onPress={() => navigation.navigate('LogWeight')}>
+              <GlassCard style={styles.gridCard}>
+                <Weight size={32} color={theme.primary} />
+                <Text style={styles.gridText}>Log Weight</Text>
+              </GlassCard>
+            </TouchableOpacity>
+          </Animated.View>
+          <Animated.View style={[styles.gridItem, { opacity: fadeAnims[1], transform: [{ translateY: fadeAnims[1].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+            <TouchableOpacity onPress={() => navigation.navigate('LogBP')}>
+              <GlassCard style={styles.gridCard}>
+                <Heart size={32} color="#f43f5e" />
+                <Text style={styles.gridText}>Log BP</Text>
+              </GlassCard>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Mood')}>
-          <GlassCard style={[styles.actionCard, { borderColor: '#eab308' }]}>
-            <Smile size={28} color="#eab308" />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.actionText}>Mood & Symptoms</Text>
-              <Text style={styles.actionSubtext}>How are you feeling today?</Text>
-            </View>
-            <Plus size={20} color="#eab308" />
-          </GlassCard>
-        </TouchableOpacity>
+        <Animated.View style={{ opacity: fadeAnims[2], transform: [{ translateY: fadeAnims[2].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Mood')}>
+            <GlassCard style={[styles.actionCard, { borderColor: 'rgba(234,179,8,0.2)' }]}>
+              <Smile size={28} color="#eab308" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.actionText}>Mood & Symptoms</Text>
+                <Text style={styles.actionSubtext}>Record daily wellness and physical symptoms</Text>
+              </View>
+              <Plus size={20} color="#eab308" />
+            </GlassCard>
+          </TouchableOpacity>
+        </Animated.View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Medication')}>
-          <GlassCard style={[styles.actionCard, { borderColor: '#10b981' }]}>
-            <Pill size={28} color="#10b981" />
-            <Text style={styles.actionText}>Medication Tracker</Text>
-            <Plus size={20} color="#10b981" />
-          </GlassCard>
-        </TouchableOpacity>
+        <Animated.View style={{ opacity: fadeAnims[3], transform: [{ translateY: fadeAnims[3].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Medication')}>
+            <GlassCard style={[styles.actionCard, { borderColor: 'rgba(16,185,129,0.2)' }]}>
+              <Pill size={28} color="#10b981" />
+              <Text style={styles.actionText}>Medication Tracker</Text>
+              <Plus size={20} color="#10b981" />
+            </GlassCard>
+          </TouchableOpacity>
+        </Animated.View>
 
         <View style={styles.divider} />
 
         <View style={styles.grid}>
-          <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('Trends')}>
-            <GlassCard style={styles.gridCard}>
-              <TrendingUp size={28} color="#22c55e" />
-              <Text style={styles.gridTextSmall}>View Trends</Text>
-            </GlassCard>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate('History')}>
-            <GlassCard style={styles.gridCard}>
-              <HistoryIcon size={28} color="#f59e0b" />
-              <Text style={styles.gridTextSmall}>Log History</Text>
-            </GlassCard>
-          </TouchableOpacity>
+          <Animated.View style={[styles.gridItem, { opacity: fadeAnims[4], transform: [{ translateY: fadeAnims[4].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+            <TouchableOpacity onPress={() => navigation.navigate('Trends')}>
+              <GlassCard style={styles.gridCard}>
+                <TrendingUp size={28} color="#22c55e" />
+                <Text style={styles.gridTextSmall}>View Trends</Text>
+              </GlassCard>
+            </TouchableOpacity>
+          </Animated.View>
+          <Animated.View style={[styles.gridItem, { opacity: fadeAnims[5], transform: [{ translateY: fadeAnims[5].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
+            <TouchableOpacity onPress={() => navigation.navigate('History')}>
+              <GlassCard style={styles.gridCard}>
+                <HistoryIcon size={28} color="#f59e0b" />
+                <Text style={styles.gridTextSmall}>Log History</Text>
+              </GlassCard>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('Goals')}>
@@ -439,7 +503,7 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Report')}>
-          <GlassCard style={[styles.actionCard, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+          <GlassCard style={[styles.actionCard, { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.1)' }]}>
             <FileDown size={28} color="#fff" />
             <Text style={styles.actionText}>Generate Doctor Report</Text>
           </GlassCard>
@@ -493,13 +557,7 @@ const MoodScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={24} color="#fff" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>How are you?</Text>
-      </View>
+      <ScreenHeader title="Wellness Check" navigation={navigation} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.label}>Select your mood</Text>
         <View style={styles.moodGrid}>
@@ -560,16 +618,20 @@ const HistoryScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={24} color="#fff" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>History</Text>
-      </View>
+      <ScreenHeader title="Record History" navigation={navigation} />
 
       {loading ? (
-        <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 50 }} />
+        <View style={styles.scrollContent}>
+          {[1, 2, 3, 4].map(i => (
+            <View key={i} style={[styles.historyCard, { backgroundColor: 'rgba(255,255,255,0.02)' }]}>
+              <View style={{ flex: 1, gap: 8 }}>
+                <Skeleton width="60%" height={12} />
+                <Skeleton width="40%" height={16} />
+              </View>
+              <Skeleton width={80} height={30} />
+            </View>
+          ))}
+        </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {data.map((item, index) => {
@@ -615,13 +677,7 @@ const SettingsScreen = ({ navigation, onLogout }) => {
 
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={24} color="#fff" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Settings</Text>
-      </View>
+      <ScreenHeader title="Settings" navigation={navigation} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.label}>Choose Theme</Text>
         <View style={styles.themeGrid}>
@@ -641,7 +697,7 @@ const SettingsScreen = ({ navigation, onLogout }) => {
             <Text style={[styles.actionText, { color: '#ef4444' }]}>Logout</Text>
           </GlassCard>
         </TouchableOpacity>
-        <Text style={{ color: '#94a3b8', marginTop: 20, textAlign: 'center' }}>Version 3.2.0 • ReachShwet Edition</Text>
+        <Text style={{ color: '#4b5563', marginTop: 24, textAlign: 'center', fontSize: 12 }}>Version 3.2.0 • Build 2026.01</Text>
       </ScrollView>
     </LinearGradient>
   );
@@ -677,9 +733,8 @@ const LogScreen = ({ navigation, type }) => {
 
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
+      <ScreenHeader title={`Log ${type}`} navigation={navigation} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}><ChevronLeft size={24} color="#fff"/><Text style={styles.backText}>Back</Text></TouchableOpacity>
-        <Text style={styles.screenTitle}>{type}</Text>
         <GlassCard style={styles.formCard}>
           {(type === 'WEIGHT' || type === 'BOTH') && (
             <View style={styles.inputGroup}><Text style={styles.label}>Weight (kg)</Text><TextInput style={styles.input} keyboardType="numeric" value={weight} onChangeText={setWeight}/></View>
@@ -717,11 +772,26 @@ const MedicationScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}><Text style={styles.screenTitle}>Medications</Text></View>
-      <View style={{ paddingHorizontal: 24 }}><TextInput style={styles.inputSmall} placeholder="Medicine Name" value={name} onChangeText={setName}/><CustomButton title="Log Taken" color="#10b981" onPress={h} loading={loading}/></View>
-      <ScrollView style={{ padding: 24 }}>{meds.map((m, i) => (
-        <GlassCard key={i} style={styles.medCard}><View><Text style={styles.medName}>{m.med_name}</Text><Text style={styles.historyDate}>{m.date} • {m.time}</Text></View><CheckCircle2 size={24} color="#10b981"/></GlassCard>
-      ))}</ScrollView>
+      <ScreenHeader title="Medications" navigation={navigation} />
+      <View style={{ paddingHorizontal: 24, marginTop: 10 }}>
+        <TextInput style={styles.inputSmall} placeholder="Medicine Name" value={name} onChangeText={setName}/>
+        <CustomButton title="Log Medication" color="#10b981" onPress={h} loading={loading}/>
+      </View>
+      <ScrollView style={{ padding: 24 }}>
+        {loading ? (
+          [1, 2, 3].map(i => (
+            <View key={i} style={[styles.medCard, { backgroundColor: 'rgba(255,255,255,0.02)' }]}>
+              <View style={{ gap: 8 }}>
+                <Skeleton width={120} height={16} />
+                <Skeleton width={80} height={12} />
+              </View>
+              <Skeleton width={24} height={24} style={{ borderRadius: 12 }} />
+            </View>
+          ))
+        ) : meds.map((m, i) => (
+          <GlassCard key={i} style={styles.medCard}><View><Text style={styles.medName}>{m.med_name}</Text><Text style={styles.historyDate}>{m.date} • {m.time}</Text></View><CheckCircle2 size={24} color="#10b981"/></GlassCard>
+        ))}
+      </ScrollView>
     </LinearGradient>
   );
 };
@@ -742,8 +812,8 @@ const GoalsScreen = ({ navigation }) => {
   const save = async () => { await AsyncStorage.setItem('health_goals', JSON.stringify({ weight: w })); navigation.goBack(); };
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}><Text style={styles.screenTitle}>Goals</Text></View>
-      <View style={styles.scrollContent}><GlassCard style={styles.formCard}><Text style={styles.label}>Weight Goal (kg)</Text><TextInput style={styles.input} keyboardType="numeric" value={w} onChangeText={setW}/><CustomButton title="Save" onPress={save}/></GlassCard></View>
+      <ScreenHeader title="Health Goals" navigation={navigation} />
+      <View style={styles.scrollContent}><GlassCard style={styles.formCard}><Text style={styles.label}>Target Weight (kg)</Text><TextInput style={styles.input} keyboardType="numeric" value={w} onChangeText={setW}/><CustomButton title="Save Goals" onPress={save}/></GlassCard></View>
     </LinearGradient>
   );
 };
@@ -761,7 +831,8 @@ const ReportScreen = ({ navigation }) => {
   };
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.centerContent}><FileDown size={80} color="#fff"/><Text style={styles.successTitle}>Doctor Report</Text><CustomButton title="Share PDF" onPress={gen} loading={loading}/></View>
+      <ScreenHeader title="Health Report" navigation={navigation} />
+      <View style={styles.centerContent}><FileDown size={80} color="#fff"/><Text style={styles.successTitle}>Generate Report</Text><Text style={styles.subtitle}>Download a PDF summary of your recent health logs</Text><CustomButton title="Share PDF Report" style={{ width: '100%', marginTop: 24 }} onPress={gen} loading={loading}/></View>
     </LinearGradient>
   );
 };
@@ -773,7 +844,7 @@ const TrendsScreen = ({ navigation }) => {
   const wd = data.filter(d => d.weight).slice(-7);
   return (
     <LinearGradient colors={theme.bg} style={styles.container}>
-      <View style={styles.header}><Text style={styles.screenTitle}>Trends</Text></View>
+      <ScreenHeader title="Health Trends" navigation={navigation} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {wd.length > 1 && <LineChart data={{ labels: wd.map(d => d.date.split('/')[0]), datasets: [{ data: wd.map(d => parseFloat(d.weight)) }] }} width={Dimensions.get('window').width - 48} height={200} chartConfig={{ backgroundColor: theme.secondary, backgroundGradientFrom: theme.secondary, backgroundGradientTo: theme.secondary, color: (o) => `rgba(255,255,255,${o})` }} bezier style={{ borderRadius: 16 }} />}
       </ScrollView>
@@ -824,32 +895,32 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 50 },
-  header: { paddingHorizontal: 24, marginBottom: 20 },
-  navHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 32, fontWeight: '800', color: '#fff' },
-  titleSmall: { fontSize: 24, fontWeight: '700', color: '#fff', marginBottom: 15 },
-  subtitle: { fontSize: 16, color: '#94a3b8' },
+  container: { flex: 1, paddingTop: 60 },
+  header: { paddingHorizontal: 24, marginBottom: 12 },
+  navHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { fontSize: 30, fontWeight: '700', color: '#fff', letterSpacing: -0.5, lineHeight: 36 },
+  titleSmall: { fontSize: 24, fontWeight: '700', color: '#fff', marginBottom: 12, lineHeight: 30 },
+  subtitle: { fontSize: 16, color: '#94a3b8', lineHeight: 24 },
   scrollContent: { padding: 24 },
   menuScroll: { flex: 1 },
-  menuContainer: { paddingHorizontal: 24, gap: 16, paddingBottom: 40 },
-  grid: { flexDirection: 'row', gap: 16 },
+  menuContainer: { paddingHorizontal: 24, gap: 12, paddingBottom: 40 },
+  grid: { flexDirection: 'row', gap: 12 },
   gridItem: { flex: 1 },
-  gridCard: { padding: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  gridText: { color: '#fff', fontSize: 16, fontWeight: '600', marginTop: 10 },
+  gridCard: { padding: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  gridText: { color: '#fff', fontSize: 16, fontWeight: '600', marginTop: 8 },
   gridTextSmall: { color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 },
-  actionSubtext: { color: '#94a3b8', fontSize: 12, marginTop: 2 },
-  actionCard: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  actionSubtext: { color: '#94a3b8', fontSize: 14, marginTop: 4, lineHeight: 20 },
+  actionCard: { flexDirection: 'row', alignItems: 'center', padding: 20, gap: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   actionText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  glassCard: { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 24, overflow: 'hidden' },
-  divider: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 10 },
-  screenTitle: { fontSize: 28, fontWeight: '700', color: '#fff' },
-  formCard: { padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  glassCard: { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: 12, overflow: 'hidden' },
+  divider: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.08)', marginVertical: 12 },
+  screenTitle: { fontSize: 26, fontWeight: '700', color: '#fff', letterSpacing: -0.5 },
+  formCard: { padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, color: '#94a3b8', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 16, padding: 18, fontSize: 20, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  inputSmall: { backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 12, fontSize: 16, color: '#fff', marginBottom: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, marginTop: 10 },
+  label: { fontSize: 14, fontWeight: '600', color: '#94a3b8', marginBottom: 8 },
+  input: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 16, fontSize: 18, color: '#fff', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  inputSmall: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 12, fontSize: 16, color: '#fff', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 12, marginTop: 8 },
   buttonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   backText: { color: '#fff', marginLeft: 4 },
