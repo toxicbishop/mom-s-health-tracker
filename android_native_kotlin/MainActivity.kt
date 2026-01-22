@@ -630,23 +630,265 @@ fun ReminderItem(time: String, desc: String, enabled: Boolean) {
     }
 }
 
+@Composable
+fun SignInScreen(navController: NavController) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    // Force Dark Theme for Auth Screens as requested "Dark mode version" or inherit
+    // For now, we assume the app is in dark mode or these screens suggest a dark aesthetic.
+    // We will use the Surface color which is dark in DarkMode.
+    
+    Scaffold(containerColor = AppTheme.colors.Background) { p ->
+        Column(
+            modifier = Modifier
+                .padding(p)
+                .padding(24.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Logo
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color(0xFF0E7490), RoundedCornerShape(16.dp)), // Teal Color
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Favorite, null, tint = Color.White, modifier = Modifier.size(32.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Sign In", style = AppTypography.H1, fontSize = 28.sp)
+            Text("Welcome back", style = AppTypography.Subtitle, modifier = Modifier.padding(top = 8.dp))
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // Email
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0E7490),
+                    unfocusedBorderColor = AppTheme.colors.Border,
+                    focusedContainerColor = AppTheme.colors.InputBg, // Darker input bg
+                    unfocusedContainerColor = AppTheme.colors.InputBg
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Password
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0E7490),
+                    unfocusedBorderColor = AppTheme.colors.Border,
+                    focusedContainerColor = AppTheme.colors.InputBg,
+                    unfocusedContainerColor = AppTheme.colors.InputBg
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Text("Forgot Password?", color = AppTheme.colors.TextSecondary, fontSize = 12.sp, modifier = Modifier.clickable { })
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Button(
+                onClick = { navController.navigate("home") },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7490)) // Teal
+            ) {
+                Text("Sign In", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Don't have an account? ", color = AppTheme.colors.TextSecondary, fontSize = 14.sp)
+                Text("Create Account", color = AppTheme.colors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.clickable { navController.navigate("signup") })
+            }
+        }
+    }
+}
+
+@Composable
+fun SignUpScreen(navController: NavController) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    Scaffold(containerColor = AppTheme.colors.Background) { p ->
+        Column(
+            modifier = Modifier
+                .padding(p)
+                .padding(24.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+             Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color(0xFF0E7490), RoundedCornerShape(16.dp)), 
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.PersonAdd, null, tint = Color.White, modifier = Modifier.size(32.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Create Account", style = AppTypography.H1, fontSize = 28.sp)
+            Text("Start your health journey", style = AppTypography.Subtitle, modifier = Modifier.padding(top = 8.dp))
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0E7490),
+                    unfocusedBorderColor = AppTheme.colors.Border,
+                    focusedContainerColor = AppTheme.colors.InputBg,
+                    unfocusedContainerColor = AppTheme.colors.InputBg
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+             OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0E7490),
+                    unfocusedBorderColor = AppTheme.colors.Border,
+                    focusedContainerColor = AppTheme.colors.InputBg,
+                    unfocusedContainerColor = AppTheme.colors.InputBg
+                )
+            )
+             Spacer(modifier = Modifier.height(16.dp))
+             OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0E7490),
+                    unfocusedBorderColor = AppTheme.colors.Border,
+                    focusedContainerColor = AppTheme.colors.InputBg,
+                    unfocusedContainerColor = AppTheme.colors.InputBg
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Button(
+                onClick = { navController.navigate("account_created") },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7490))
+            ) {
+                Text("Sign Up", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            
+             Spacer(modifier = Modifier.weight(1f))
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Already have an account? ", color = AppTheme.colors.TextSecondary, fontSize = 14.sp)
+                Text("Sign In", color = AppTheme.colors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.clickable { navController.popBackStack() })
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountCreatedScreen(navController: NavController) {
+    Scaffold(containerColor = AppTheme.colors.Background) { p ->
+        Column(
+            modifier = Modifier.padding(p).padding(32.dp).fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color(0xFF0E7490).copy(alpha = 0.1f), androidx.compose.foundation.shape.CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Color(0xFF0E7490), androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(32.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            Text("Account Created", style = AppTypography.H1, fontSize = 26.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Your account has been successfully set up. You can now start tracking your vitals and managing reminders.",
+                style = AppTypography.Subtitle,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Button(
+                onClick = { navController.navigate("home") },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0E7490))
+            ) {
+                Text("Get Started", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             // Theme State
-            var isDarkTheme by remember { mutableStateOf(false) } // Default to Light as per screenshots preference, user can toggle
+            var isDarkTheme by remember { mutableStateOf(true) } // Default to Dark for Auth screens flow as requested
             
             AppTheme(darkTheme = isDarkTheme) {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "login") {
-                    composable("login") { LoginScreen(navController) }
+                NavHost(navController = navController, startDestination = "signin") {
+                    composable("signin") { SignInScreen(navController) }
+                    composable("signup") { SignUpScreen(navController) }
+                    composable("account_created") { AccountCreatedScreen(navController) }
+                    
+                    composable("login") { LoginScreen(navController) } // Keep old PIN login if needed
                     composable("home") { HomeScreen(navController) }
                     composable("calendar") { HistoryScreen(navController) }
                     composable("trends") { TrendsScreen(navController) }
                     composable("profile") { ProfileScreen(navController, isDarkTheme) { isDarkTheme = it } }
                     composable("meds") { MedicationDetailScreen(navController) }
-                    composable("settings") { ProfileScreen(navController, isDarkTheme) { isDarkTheme = it } } // Alias for simplicity
+                    composable("settings") { ProfileScreen(navController, isDarkTheme) { isDarkTheme = it } } 
                     composable("log/{type}") { bs -> LogScreen(bs.arguments?.getString("type") ?: "WEIGHT", navController) }
                 }
             }
