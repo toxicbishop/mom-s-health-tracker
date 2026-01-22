@@ -1,33 +1,47 @@
 # Mom Health Tracker - Native Android (Kotlin)
 
-This folder contains the Kotlin source code to replicate the Mom Health Tracker app functionality using Native Android and Jetpack Compose.
+A professional health tracking application designed for expecting mothers, built with **Android Native (Kotlin)** and **Jetpack Compose**.
+
+## Features
+
+### 🔐 Authentication & Security
+- **Secure Sign In/Up**: Dark-themed login screens with modern aesthetics.
+- **PIN Protection**: Quick access via PIN verification.
+- **Dark/Light Mode**: Full theme support with a toggle in Profile settings.
+
+### 📊 Health Dashboard
+- **Vitals Tracking**: Log Weight and Blood Pressure with ease.
+- **Progress Indicators**: Visual trackers for health goals.
+- **Quick Logging**: Easy access buttons for daily logs.
+
+### 💊 Medication Management
+- **Meds Tab**: dedicated screen for managing prescriptions (e.g., Metformin).
+- **Adherence Tracking**: "Today's Progress" bars and completion stats.
+- **Reminders**: Custom schedules (Daily/Weekly) with alarm toggles.
+
+### 📈 Analytics & History
+- **Trends**: Visual weight graphs and blood pressure analysis.
+- **Insights**: Auto-generated health insights based on your data patterns.
+- **Calendar/History**: Detailed log history grouped by date (Today/Yesterday).
+
+### ⚙️ Profile
+- **Personal Settings**: manage account info.
+- **Theme Toggle**: Switch between Professional Light and Slate Dark modes.
+
+## Tech Stack
+- **Language**: Kotlin
+- **UI Framework**: Jetpack Compose (Material3)
+- **Navigation**: Jetpack Navigation Compose
+- **Networking**: Retrofit + Gson
+- **Architecture**: MVVM (Model-View-ViewModel)
 
 ## How to Run
 
-1. **Install Android Studio**.
-2. **Create a New Project**:
-   - Select "Empty Activity" (ensuring it uses Jetpack Compose).
-   - Name it "MomHealthTracker".
-3. **Add Dependencies**:
-   Open `app/build.gradle.kts` and ensure you have these dependencies (versions may vary):
-   ```kotlin
-   implementation("androidx.compose.ui:ui:1.6.0")
-   implementation("androidx.compose.material3:material3:1.2.0")
-   implementation("androidx.navigation:navigation-compose:2.7.6")
-   implementation("com.squareup.retrofit2:retrofit:2.9.0")
-   implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-   implementation("androidx.datastore:datastore-preferences:1.0.0")
-   // For charts (optional, or use a library like Vico or MPAndroidChart)
-   // implementation("com.github.PhilJay:MPAndroidChart:v3.1.0") 
-   ```
-4. **Copy Code**:
-   - Copy the content of `MainActivity.kt` from this folder into your project's `app/src/main/java/com/example/momhealthtracker/MainActivity.kt`.
-   - *Note*: You may need to adjust the `package` declaration at the top of the file to match your project.
+1. **Prerequisites**: Android Studio Hedgehog or newer.
+2. **Open Project**: Open the android project folder in Android Studio.
+3. **Sync Gradle**: Ensure all dependencies (`retrofit`, `navigation-compose`, etc.) are downloaded.
+4. **Run**: Select an emulator or physical device and click **Run**.
 
-## Architecture Differences
-
-- **UI**: Replaces React Native Views/Text with Jetpack Compose `Box`, `Column`, `Text`.
-- **State**: Uses `ViewModel` and `StateFlow` instead of `useState` and `Context`.
-- **Navigation**: Uses `NavHost` instead of `React Navigation`.
-- **Networking**: Uses `Retrofit` instead of `fetch`.
-- **Local Storage**: Uses `DataStore` instead of `AsyncStorage`.
+## Project Structure
+- `MainActivity.kt`: Contains the entry point and all Composable screens (Login, Home, Trends, Meds, Profile).
+- `Theme Engine`: Custom `AppTheme` with swappable `LightPalette` and `DarkPalette`.
